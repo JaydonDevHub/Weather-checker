@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Professional Weather Dashboard with real-time forecasts, maps, and weather alerts">
+    <meta name="theme-color" content="#1e88e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Weather Dashboard Pro</title>
+    
+    <!-- Icons & Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/icons/weather.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/icons/weather.png">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/darkmode.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    
+    <!-- Google Translate Element -->
+    <div id="google_translate_element" style="display: none;"></div>
+    
+    <!-- Background Video -->
+    <video autoplay muted loop id="bgVideo">
+        <source id="bgSource" src="assets/backgrounds/sunny.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Loading Weather Data...</p>
+    </div>
+    
+    <!-- Main App Container -->
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-cloud-sun"></i>
+                <h1>Weather Dashboard Pro</h1>
+            </div>
+            <div class="header-buttons">
+                <button id="darkModeBtn" aria-label="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <select id="languageSelect" aria-label="Select Language">
+                    <option value="en">English</option>
+                    <option value="sw">Kiswahili</option>
+                    <option value="fr">Français</option>
+                    <option value="es">Español</option>
+                    <option value="de">Deutsch</option>
+                    <option value="it">Italiano</option>
+                    <option value="pt">Português</option>
+                    <option value="ru">Русский</option>
+                    <option value="ar">العربية</option>
+                    <option value="zh">中文</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="tr">Türkçe</option>
+                    <option value="nl">Nederlands</option>
+                    <option value="pl">Polski</option>
+                    <option value="vi">Tiếng Việt</option>
+                </select>
+            </div>
+        </header>
+        
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Search city..." aria-label="City name">
+                <button id="searchBtn" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button id="voiceSearchBtn" aria-label="Voice Search">
+                    🎤
+                </button>
+            </div>
+            <div id="suggestions"></div>
+            <div id="recentCities"></div>
+        </section>
+        
+        <!-- Current Weather -->
+        <section class="current-weather">
+            <div class="weather-left">
+                <h2 id="cityName">Nairobi, Kenya</h2>
+                <img id="weatherIcon" src="" alt="Weather icon">
+                <p id="description">Loading...</p>
+                <h1 id="temperature">--°C</h1>
+                <button id="unitToggle" aria-label="Toggle Temperature Unit">°C / °F</button>
+                <p id="feelsLike"></p>
+                <p id="wearAdvice"></p>
+            </div>
+            <div class="weather-right">
+                <div class="weather-card">
+                    💧 Humidity
+                    <span id="humidity">--%</span>
+                </div>
+                <div class="weather-card">
+                    💨 Wind
+                    <span id="wind">-- km/h</span>
+                </div>
+                <div class="weather-card">
+                    📊 Pressure
+                    <span id="pressure">-- hPa</span>
+                </div>
+                <div class="weather-card">
+                    👁️ Visibility
+                    <span id="visibility">-- km</span>
+                </div>
+                <div class="weather-card">
+                    🌅 Sunrise
+                    <span id="sunrise">--:--</span>
+                </div>
+                <div class="weather-card">
+                    🌇 Sunset
+                    <span id="sunset">--:--</span>
+                </div>
+                <div class="weather-card">
+                    ☀️ UV Index
+                    <span id="uvIndex">--</span>
+                </div>
+                <div class="weather-card">
+                    🌫️ Air Quality
+                    <span id="aqi">--</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Weather Alerts -->
+        <section class="alerts-section">
+            <h2><i class="fas fa-exclamation-triangle"></i> Weather Alerts</h2>
+            <div id="alertsContainer">
+                No alerts available
+            </div>
+        </section>
+        
+        <!-- 5 Day Forecast -->
+        <section class="forecast-section">
+            <h2><i class="fas fa-calendar-week"></i> 5 Day Forecast</h2>
+            <div id="forecastContainer"></div>
+        </section>
+        
+        <!-- Hourly Forecast -->
+        <section class="hourly-section">
+            <h2><i class="fas fa-clock"></i> 24 Hour Forecast</h2>
+            <div id="hourlyContainer"></div>
+        </section>
+        
+        <!-- Temperature Chart -->
+        <section class="chart-section">
+            <h2><i class="fas fa-chart-line"></i> Temperature Trend</h2>
+            <canvas id="weatherChart"></canvas>
+        </section>
+        
+        <!-- AQI Chart -->
+        <section class="chart-section">
+            <h2><i class="fas fa-chart-bar"></i> Air Quality Trend</h2>
+            <canvas id="aqiChart"></canvas>
+        </section>
+        
+        <!-- Weather Map -->
+        <section class="map-section">
+            <h2><i class="fas fa-map-marked-alt"></i> City Map</h2>
+            <div id="map"></div>
+        </section>
+        
+        <!-- Favorite Cities -->
+        <section class="favorites-section">
+            <h2><i class="fas fa-star"></i> Favorite Cities</h2>
+            <div id="favoriteCities"></div>
+        </section>
+        
+        <!-- Compare Cities -->
+        <section class="compare-section">
+            <h2><i class="fas fa-chart-simple"></i> Compare Cities</h2>
+            <div class="compare-box">
+                <input type="text" id="compareCity1" placeholder="First City" aria-label="First city to compare">
+                <input type="text" id="compareCity2" placeholder="Second City" aria-label="Second city to compare">
+                <button id="compareBtn">Compare</button>
+            </div>
+            <div id="comparisonResult"></div>
+        </section>
+        
+        <!-- Weather News -->
+        <section class="news-section">
+            <h2><i class="fas fa-newspaper"></i> Weather News</h2>
+            <div id="newsContainer">Loading news...</div>
+        </section>
+        
+        <!-- Statistics -->
+        <section class="stats-section">
+            <h2><i class="fas fa-chart-simple"></i> Weather Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    📈 Highest Temp
+                    <span id="highestTemp">--</span>
+                </div>
+                <div class="stat-box">
+                    📉 Lowest Temp
+                    <span id="lowestTemp">--</span>
+                </div>
+                <div class="stat-box">
+                    📊 Average Temp
+                    <span id="averageTemp">--</span>
+                </div>
+                <div class="stat-box">
+                    🌧️ Rain Probability
+                    <span id="rainChance">--%</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Export & Share -->
+        <section class="action-section">
+            <button id="shareBtn" aria-label="Share Weather">
+                <i class="fas fa-share-alt"></i> Share Weather
+            </button>
+            <button id="downloadPdfBtn" aria-label="Download Report">
+                <i class="fas fa-download"></i> Download Report
+            </button>
+            <button id="installBtn" aria-label="Install App" style="display: none;">
+                <i class="fas fa-download"></i> Install App
+            </button>
+        </section>
+        
+        <!-- Footer -->
+        <footer>
+            <p>Weather Dashboard Pro © 2026 | Powered by OpenWeather API</p>
+        </footer>
+        
+    </div>
+    
+<script src="js/combined.js"></script>
+
+    <!-- Google Translate Script -->
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: "en",
+                    autoDisplay: false,
+                    includedLanguages: "en,sw,fr,es,de,it,pt,ru,ar,zh,ja,ko,hi,tr,nl,pl,vi",
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                },
+                "google_translate_element"
+            );
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <!-- Additional error handling for missing modules -->
+    <script>
+        // Error handler for missing modules
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('is not defined')) {
+                console.warn('Module not loaded yet:', e.message);
+            }
+        });
+        
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+        });
+    </script>
+    
+</body>
+</html>
