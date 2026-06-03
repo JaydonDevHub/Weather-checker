@@ -2,7 +2,7 @@
    CONFIG
 ========================== */
 
-const API_KEY = "f591325fc5a89064bbed62adeab2d92c"; // Add your
+const API_KEY = "0eb3c749d8387ee12eeadb622bb450a8"; // Add your
 
 let currentUnit = "metric";
 let currentCity = "Nairobi";
