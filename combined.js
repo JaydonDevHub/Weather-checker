@@ -2,7 +2,7 @@
    CONFIG
 ========================== */
 
-const API_KEY = "0eb3c749d8387ee12eeadb622bb450a8"; // Add your
+const API_KEY = "0eb3c749d8387ee12eeadb622bb450a8";
 
 let currentUnit = "metric";
 let currentCity = "Nairobi";
@@ -12,9 +12,8 @@ let aqiChart = null;
 let cityMap = null;
 let deferredPrompt = null;
 
-
 /* ==========================
-   LANGUAGE SETTINGS (from settings.js)
+   LANGUAGE SETTINGS
 ========================== */
 
 const languageSelect = document.getElementById("languageSelect");
@@ -93,17 +92,19 @@ window.addEventListener("load", () => {
    SEARCH WEATHER
 ========================== */
 
-searchBtn.addEventListener("click", () => {
-    const city = cityInput.value.trim();
-    if(city === "") return;
-    loadWeather(city);
-});
+if(searchBtn && cityInput){
+    searchBtn.addEventListener("click", () => {
+        const city = cityInput.value.trim();
+        if(city === "") return;
+        loadWeather(city);
+    });
 
-cityInput.addEventListener("keypress", e => {
-    if(e.key === "Enter"){
-        searchBtn.click();
-    }
-});
+    cityInput.addEventListener("keypress", e => {
+        if(e.key === "Enter"){
+            searchBtn.click();
+        }
+    });
+}
 
 /* ==========================
    FETCH WEATHER
@@ -149,17 +150,24 @@ async function loadWeather(city){
 ========================== */
 
 function updateWeatherUI(data){
-    cityName.textContent = data.name + ", " + data.sys.country;
-    temperature.textContent = Math.round(data.main.temp) + (currentUnit === "metric" ? "°C" : "°F");
-    description.textContent = data.weather[0].description;
-    weatherIcon.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@4x.png`;
-    humidity.textContent = data.main.humidity + "%";
-    wind.textContent = data.wind.speed + " km/h";
-    pressure.textContent = data.main.pressure + " hPa";
-    visibility.textContent = (data.visibility / 1000).toFixed(1) + " km";
-    feelsLike.textContent = "Feels like " + Math.round(data.main.feels_like) + (currentUnit === "metric" ? "°C" : "°F");
-    sunrise.textContent = convertTime(data.sys.sunrise);
-    sunset.textContent = convertTime(data.sys.sunset);
+    if(cityName) cityName.textContent = data.name + ", " + data.sys.country;
+    if(temperature) temperature.textContent = Math.round(data.main.temp) + (currentUnit === "metric" ? "°C" : "°F");
+    if(description) description.textContent = data.weather[0].description;
+    if(weatherIcon) weatherIcon.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@4x.png`;
+    if(humidity) humidity.textContent = data.main.humidity + "%";
+    
+    // Convert wind speed from m/s to km/h
+    let windSpeed = data.wind.speed;
+    if(currentUnit === "metric") {
+        windSpeed = (windSpeed * 3.6).toFixed(1);
+    }
+    if(wind) wind.textContent = windSpeed + " km/h";
+    
+    if(pressure) pressure.textContent = data.main.pressure + " hPa";
+    if(visibility) visibility.textContent = (data.visibility / 1000).toFixed(1) + " km";
+    if(feelsLike) feelsLike.textContent = "Feels like " + Math.round(data.main.feels_like) + (currentUnit === "metric" ? "°C" : "°F");
+    if(sunrise) sunrise.textContent = convertTime(data.sys.sunrise);
+    if(sunset) sunset.textContent = convertTime(data.sys.sunset);
     updateWearAdvice(data.main.temp);
     changeBackground(data.weather[0].main);
 }
@@ -182,7 +190,7 @@ function updateWearAdvice(temp){
     else{
         advice = "☀ Stay hydrated and wear light clothes.";
     }
-    wearAdvice.textContent = advice;
+    if(wearAdvice) wearAdvice.textContent = advice;
 }
 
 /* ==========================
@@ -198,11 +206,11 @@ function convertTime(timestamp){
 ========================== */
 
 function showLoader(){
-    loader.style.display = "flex";
+    if(loader) loader.style.display = "flex";
 }
 
 function hideLoader(){
-    loader.style.display = "none";
+    if(loader) loader.style.display = "none";
 }
 
 /* ==========================
@@ -246,10 +254,13 @@ function getUserLocation(){
    UNIT TOGGLE
 ========================== */
 
-document.getElementById("unitToggle").addEventListener("click", () => {
-    currentUnit = currentUnit === "metric" ? "imperial" : "metric";
-    loadWeather(currentCity);
-});
+const unitToggle = document.getElementById("unitToggle");
+if(unitToggle){
+    unitToggle.addEventListener("click", () => {
+        currentUnit = currentUnit === "metric" ? "imperial" : "metric";
+        loadWeather(currentCity);
+    });
+}
 
 /* ==========================
    RECENT SEARCHES
@@ -309,26 +320,31 @@ function loadFavorites(){
     });
 }
 
-// Add favorite button if not exists, or call this from somewhere
-document.getElementById("favoriteBtn")?.addEventListener("click", addFavorite);
+const favoriteBtn = document.getElementById("favoriteBtn");
+if(favoriteBtn){
+    favoriteBtn.addEventListener("click", addFavorite);
+}
 
 /* ==========================
    SHARE WEATHER
 ========================== */
 
-document.getElementById("shareBtn")?.addEventListener("click", async () => {
-    if(navigator.share && currentWeatherData){
-        try{
-            await navigator.share({
-                title: "Weather Dashboard",
-                text: `${currentCity}: ${temperature.textContent} - ${description.textContent}`
-            });
+const shareBtn = document.getElementById("shareBtn");
+if(shareBtn){
+    shareBtn.addEventListener("click", async () => {
+        if(navigator.share && currentWeatherData){
+            try{
+                await navigator.share({
+                    title: "Weather Dashboard",
+                    text: `${currentCity}: ${temperature.textContent} - ${description.textContent}`
+                });
+            }
+            catch(err){
+                console.log(err);
+            }
         }
-        catch(err){
-            console.log(err);
-        }
-    }
-});
+    });
+}
 
 /* ==========================
    WEATHER BACKGROUNDS
@@ -337,6 +353,8 @@ document.getElementById("shareBtn")?.addEventListener("click", async () => {
 function changeBackground(weather){
     const bgSource = document.getElementById("bgSource");
     const bgVideo = document.getElementById("bgVideo");
+    
+    if(!bgSource || !bgVideo) return;
     
     switch(weather.toLowerCase()){
         case "rain":
@@ -369,7 +387,7 @@ setInterval(() => {
 ========================== */
 
 const voiceBtn = document.getElementById("voiceSearchBtn");
-if("webkitSpeechRecognition" in window){
+if(voiceBtn && "webkitSpeechRecognition" in window){
     const recognition = new webkitSpeechRecognition();
     recognition.continuous = false;
     recognition.lang = "en-US";
@@ -378,7 +396,7 @@ if("webkitSpeechRecognition" in window){
     });
     recognition.onresult = event => {
         const city = event.results[0][0].transcript;
-        cityInput.value = city;
+        if(cityInput) cityInput.value = city;
         loadWeather(city);
     };
 }
@@ -447,7 +465,7 @@ function renderHourlyForecast(data){
 
 function renderTemperatureChart(data){
     const canvas = document.getElementById("weatherChart");
-    if(!canvas) return;
+    if(!canvas || !window.Chart) return;
     
     const labels = data.list.slice(0,8).map(item =>
         new Date(item.dt_txt).toLocaleTimeString([], {hour:"2-digit"})
@@ -522,7 +540,7 @@ function setText(id, value){
 
 function initMap(lat, lon, cityName){
     const mapContainer = document.getElementById("map");
-    if(!mapContainer) return;
+    if(!mapContainer || !window.L) return;
     
     if(cityMap){
         cityMap.remove();
@@ -548,7 +566,6 @@ async function loadAQI(lat, lon){
     if(!aqiElement) return;
     
     try{
-        // Using OpenWeather's Air Pollution API
         const response = await fetch(
             `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`
         );
@@ -562,12 +579,11 @@ async function loadAQI(lat, lon){
         const aqiText = getAQIText(aqiValue);
         aqiElement.textContent = aqiText;
         
-        // Also render AQI chart if data is available
         renderAQIChart(data.list);
     }
     catch(error){
         console.error("AQI Error:", error);
-        aqiElement.textContent = "Unavailable";
+        if(aqiElement) aqiElement.textContent = "Unavailable";
     }
 }
 
@@ -584,7 +600,7 @@ function getAQIText(aqi){
 
 function renderAQIChart(aqiData){
     const canvas = document.getElementById("aqiChart");
-    if(!canvas || !aqiData) return;
+    if(!canvas || !aqiData || !window.Chart) return;
     
     const labels = aqiData.slice(0,8).map((item, index) => `Hour ${index + 1}`);
     const aqiValues = aqiData.slice(0,8).map(item => item.main.aqi);
@@ -640,7 +656,6 @@ async function loadUVIndex(lat, lon){
     if(!uvElement) return;
     
     try{
-        // Note: UV Index requires OneCall API 3.0
         const response = await fetch(
             `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=hourly,daily,minutely&appid=${API_KEY}`
         );
@@ -656,7 +671,7 @@ async function loadUVIndex(lat, lon){
     }
     catch(error){
         console.error("UV Index Error:", error);
-        uvElement.textContent = "Unavailable";
+        if(uvElement) uvElement.textContent = "Unavailable";
     }
 }
 
@@ -683,7 +698,6 @@ async function loadWeatherAlerts(lat, lon){
         
         const data = await response.json();
         
-        // Check if there are alerts in the response
         if(data.alerts && data.alerts.length > 0){
             alertsContainer.innerHTML = "";
             data.alerts.forEach(alert => {
@@ -715,8 +729,6 @@ async function loadWeatherNews(city){
     if(!newsContainer) return;
     
     try{
-        // Using GNews API (free tier) - you'll need an API key
-        // For demo purposes, showing placeholder content
         newsContainer.innerHTML = `
             <div class="news-card">
                 <h4>Weather Update</h4>
@@ -731,33 +743,10 @@ async function loadWeatherNews(city){
                 <p>Check weather before planning outdoor activities</p>
             </div>
         `;
-        
-        // Uncomment below if you have a news API key
-        /*
-        const newsResponse = await fetch(
-            `https://gnews.io/api/v4/search?q=weather+${city}&token=YOUR_NEWS_API_KEY&lang=en&max=6`
-        );
-        const newsData = await newsResponse.json();
-        
-        if(newsData.articles && newsData.articles.length > 0){
-            newsContainer.innerHTML = "";
-            newsData.articles.slice(0,6).forEach(article => {
-                const newsCard = document.createElement("div");
-                newsCard.className = "news-card";
-                newsCard.innerHTML = `
-                    <h4>📰 ${article.title.substring(0, 60)}</h4>
-                    <p>${article.description?.substring(0, 100) || 'Click to read more'}</p>
-                    <small>${new Date(article.publishedAt).toLocaleDateString()}</small>
-                `;
-                newsCard.onclick = () => window.open(article.url, '_blank');
-                newsContainer.appendChild(newsCard);
-            });
-        }
-        */
     }
     catch(error){
         console.error("News Error:", error);
-        newsContainer.innerHTML = "Weather news unavailable";
+        if(newsContainer) newsContainer.innerHTML = "Weather news unavailable";
     }
 }
 
@@ -765,37 +754,40 @@ async function loadWeatherNews(city){
    CITY COMPARISON MODULE
 ========================== */
 
-document.getElementById("compareBtn")?.addEventListener("click", async () => {
-    const city1 = document.getElementById("compareCity1")?.value.trim();
-    const city2 = document.getElementById("compareCity2")?.value.trim();
-    
-    if(!city1 || !city2){
-        alert("Please enter both city names");
-        return;
-    }
-    
-    const resultContainer = document.getElementById("comparisonResult");
-    if(!resultContainer) return;
-    
-    resultContainer.innerHTML = "<p>Comparing cities...</p>";
-    
-    try{
-        const [weather1, weather2] = await Promise.all([
-            fetchWeatherData(city1),
-            fetchWeatherData(city2)
-        ]);
+const compareBtn = document.getElementById("compareBtn");
+if(compareBtn){
+    compareBtn.addEventListener("click", async () => {
+        const city1 = document.getElementById("compareCity1")?.value.trim();
+        const city2 = document.getElementById("compareCity2")?.value.trim();
         
-        if(weather1 && weather2){
-            displayComparison(weather1, weather2);
-        } else {
-            resultContainer.innerHTML = "<p>One or both cities not found</p>";
+        if(!city1 || !city2){
+            alert("Please enter both city names");
+            return;
         }
-    }
-    catch(error){
-        console.error("Comparison Error:", error);
-        resultContainer.innerHTML = "<p>Error comparing cities</p>";
-    }
-});
+        
+        const resultContainer = document.getElementById("comparisonResult");
+        if(!resultContainer) return;
+        
+        resultContainer.innerHTML = "<p>Comparing cities...</p>";
+        
+        try{
+            const [weather1, weather2] = await Promise.all([
+                fetchWeatherData(city1),
+                fetchWeatherData(city2)
+            ]);
+            
+            if(weather1 && weather2){
+                displayComparison(weather1, weather2);
+            } else {
+                resultContainer.innerHTML = "<p>One or both cities not found</p>";
+            }
+        }
+        catch(error){
+            console.error("Comparison Error:", error);
+            resultContainer.innerHTML = "<p>Error comparing cities</p>";
+        }
+    });
+}
 
 async function fetchWeatherData(city){
     try{
@@ -812,20 +804,25 @@ async function fetchWeatherData(city){
 
 function displayComparison(data1, data2){
     const resultContainer = document.getElementById("comparisonResult");
+    if(!resultContainer) return;
+    
+    const windSpeed1 = (data1.wind.speed * 3.6).toFixed(1);
+    const windSpeed2 = (data2.wind.speed * 3.6).toFixed(1);
+    
     resultContainer.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px;">
                 <h3>${data1.name}, ${data1.sys.country}</h3>
                 <p>Temperature: ${Math.round(data1.main.temp)}°${currentUnit === "metric" ? "C" : "F"}</p>
                 <p>Humidity: ${data1.main.humidity}%</p>
-                <p>Wind: ${data1.wind.speed} km/h</p>
+                <p>Wind: ${windSpeed1} km/h</p>
                 <p>Condition: ${data1.weather[0].description}</p>
             </div>
             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px;">
                 <h3>${data2.name}, ${data2.sys.country}</h3>
                 <p>Temperature: ${Math.round(data2.main.temp)}°${currentUnit === "metric" ? "C" : "F"}</p>
                 <p>Humidity: ${data2.main.humidity}%</p>
-                <p>Wind: ${data2.wind.speed} km/h</p>
+                <p>Wind: ${windSpeed2} km/h</p>
                 <p>Condition: ${data2.weather[0].description}</p>
             </div>
         </div>
@@ -863,24 +860,29 @@ function setupPWA(){
    PDF DOWNLOAD (Simple Version)
 ========================== */
 
-document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
-    alert("PDF download feature coming soon! You can take a screenshot for now.");
-    // For full PDF functionality, you would need to add jsPDF library
-});
+const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+if(downloadPdfBtn){
+    downloadPdfBtn.addEventListener("click", () => {
+        alert("PDF download feature coming soon! You can take a screenshot for now.");
+    });
+}
 
 /* ==========================
    DARK MODE TOGGLE
 ========================== */
 
-document.getElementById("darkModeBtn")?.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    const isDark = document.body.classList.contains("dark-mode");
-    localStorage.setItem("darkMode", isDark);
-    const icon = document.querySelector("#darkModeBtn i");
-    if(icon){
-        icon.className = isDark ? "fas fa-sun" : "fas fa-moon";
-    }
-});
+const darkModeBtn = document.getElementById("darkModeBtn");
+if(darkModeBtn){
+    darkModeBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+        localStorage.setItem("darkMode", isDark);
+        const icon = document.querySelector("#darkModeBtn i");
+        if(icon){
+            icon.className = isDark ? "fas fa-sun" : "fas fa-moon";
+        }
+    });
+}
 
 // Load dark mode preference
 if(localStorage.getItem("darkMode") === "true"){
@@ -890,33 +892,7 @@ if(localStorage.getItem("darkMode") === "true"){
 }
 
 /* ==========================
-   ADD DARK MODE CSS (if not in CSS file)
-========================== */
-const darkModeStyles = document.createElement("style");
-darkModeStyles.textContent = `
-    body.dark-mode {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-    }
-    body.dark-mode .current-weather,
-    body.dark-mode .forecast-section,
-    body.dark-mode .hourly-section,
-    body.dark-mode .chart-section,
-    body.dark-mode .map-section,
-    body.dark-mode .alerts-section,
-    body.dark-mode .compare-section,
-    body.dark-mode .news-section,
-    body.dark-mode .stats-section,
-    body.dark-mode .favorites-section {
-        background: rgba(0, 0, 0, 0.3);
-    }
-    body.dark-mode canvas {
-        background: #2d2d2d;
-    }
-`;
-document.head.appendChild(darkModeStyles);
-
-/* ==========================
-   EXPOSE FUNCTIONS GLOBALLY (for HTML onclick)
+   EXPOSE FUNCTIONS GLOBALLY
 ========================== */
 window.loadWeather = loadWeather;
 window.addFavorite = addFavorite;
