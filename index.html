@@ -251,34 +251,35 @@
         
     </div>
     
-<script src="js/combined.js"></script>
+    <!-- Main JS Script -->
+    <script src="js/combined.js"></script>
 
     <!-- Google Translate Script -->
     <script>
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement(
-                {
-                    pageLanguage: "en",
-                    autoDisplay: false,
-                    includedLanguages: "en,sw,fr,es,de,it,pt,ru,ar,zh,ja,ko,hi,tr,nl,pl,vi",
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-                },
-                "google_translate_element"
-            );
+            if (typeof google !== 'undefined' && google.translate) {
+                new google.translate.TranslateElement(
+                    {
+                        pageLanguage: "en",
+                        autoDisplay: false,
+                        includedLanguages: "en,sw,fr,es,de,it,pt,ru,ar,zh,ja,ko,hi,tr,nl,pl,vi",
+                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                    },
+                    "google_translate_element"
+                );
+            }
         }
     </script>
     <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     
-    <!-- Additional error handling for missing modules -->
+    <!-- Global error handling -->
     <script>
-        // Error handler for missing modules
         window.addEventListener('error', function(e) {
             if (e.message && e.message.includes('is not defined')) {
                 console.warn('Module not loaded yet:', e.message);
             }
         });
         
-        // Hide loader when page is fully loaded
         window.addEventListener('load', function() {
             setTimeout(function() {
                 const loader = document.getElementById('loader');
